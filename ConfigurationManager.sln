@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution", "_Solution", "{
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
 		ConfigurationManagerAttributes.cs = ConfigurationManagerAttributes.cs
+		CHANGELOG.md = CHANGELOG.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurationManager.IL2CPP", "ConfigurationManager.IL2CPP\ConfigurationManager.IL2CPP.csproj", "{1144B70F-5FF8-4C60-9862-87698157EE1D}"

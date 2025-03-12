@@ -1,0 +1,4 @@
+| `Version` | `Update Notes`                                                                                                                                                                     |
+|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 18.4.1    | - Sizing fixes on other size monitors<br/> - Refresh list when deleting a file<br/> - Spacing between settings no longer attempts to fill the available. Making it more consistent |
+| 18.4.0    | - Initial Release with my new layout and features (contains all Official BepInEx configuration manager changes up to 18.4)                                                         |

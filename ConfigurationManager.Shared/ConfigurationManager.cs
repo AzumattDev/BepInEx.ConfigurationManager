@@ -58,6 +58,9 @@ namespace ConfigurationManager
         private List<string> _cachedOtherFiles;
         private string _cachedOtherFileTypeFilter;
 
+        const float baseWidth = 1920f;
+        const float baseHeight = 1080f;
+
 
         private enum Tab
         {
@@ -68,6 +71,7 @@ namespace ConfigurationManager
         private Tab _selectedTab = Tab.Plugins;
 
         private string _selectedOtherFile;
+        private bool fileDeleted;
 
         private static HashSet<string> _pinnedPlugins = new HashSet<string>();
 
@@ -399,17 +403,23 @@ namespace ConfigurationManager
             float widthFactor = _windowSize.Value.x; // 55% of the screen width by default
             float heightFactor = _windowSize.Value.y; // 95% of the screen height by default
 
+            float guiScale = Screen.width / baseWidth;
+
             // Ensure the window size is within reasonable limits
-            var width = Mathf.Clamp(Screen.width * widthFactor, Screen.width * 0.25f, Screen.width * widthFactor);
-            var height = Mathf.Clamp(Screen.height * heightFactor, Screen.width * 0.20f, Screen.height * heightFactor);
+            float screenWindowWidth = Mathf.Clamp(Screen.width * widthFactor, Screen.width * 0.25f, Screen.width * widthFactor);
+            float screenWindowHeight = Mathf.Clamp(Screen.height * heightFactor, Screen.width * 0.20f, Screen.height * heightFactor);
 
             // Center the window
-            var offsetX = Mathf.RoundToInt((Screen.width - width) / 2f);
-            var offsetY = Mathf.RoundToInt((Screen.height - height) / 2f);
+            float offsetX = Mathf.Round((Screen.width - screenWindowWidth) / 2f);
+            float offsetY = Mathf.Round((Screen.height - screenWindowHeight) / 2f);
+            float baseOffsetX = offsetX / guiScale;
+            float baseOffsetY = offsetY / guiScale;
+            float baseWindowWidth = screenWindowWidth / guiScale;
+            float baseWindowHeight = screenWindowHeight / guiScale;
 
-            SettingWindowRect = new Rect(offsetX, offsetY, width, height);
+            SettingWindowRect = new Rect(baseOffsetX, baseOffsetY, baseWindowWidth, baseWindowHeight);
 
-            _screenRect = new Rect(0, 0, Screen.width, Screen.height);
+            _screenRect = new Rect(0, 0, baseWidth, baseHeight);
 
             LeftColumnWidth = Mathf.RoundToInt(SettingWindowRect.width / 3.5f);
             RightColumnWidth = (int)SettingWindowRect.width - LeftColumnWidth;
@@ -426,6 +436,14 @@ namespace ConfigurationManager
             }
             else
             {
+                Matrix4x4 oldMatrix = GUI.matrix;
+                float scaleX = Screen.width / baseWidth;
+                float guiScale = scaleX;
+
+                // Apply the scaling transformation
+                GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(guiScale, guiScale, 1));
+
+
                 if (Event.current.type == EventType.MouseDown)
                 {
                     Vector2 mousePos = Event.current.mousePosition;
@@ -473,6 +491,8 @@ namespace ConfigurationManager
 
                 if (!SettingFieldDrawer.SettingKeyboardShortcut && (!_windowWasMoved || SettingWindowRect.Contains(mousePosition)))
                     Input.ResetInputAxes();
+
+                GUI.matrix = oldMatrix;
             }
         }
 
@@ -597,14 +617,10 @@ namespace ConfigurationManager
                     }
                     else if (_selectedTab == Tab.OtherFiles)
                     {
-                        /*foreach (var file in SettingSearcher.OtherConfigFiles)
-                        {
-                            DrawOtherFile(file);
-                        }*/
-
                         // If the filter has changed (or cache is null), rebuild the cache.
-                        if (_cachedOtherFiles == null || _cachedOtherFileTypeFilter != _otherFileTypeFilter)
+                        if (_cachedOtherFiles == null || _cachedOtherFileTypeFilter != _otherFileTypeFilter || fileDeleted)
                         {
+                            fileDeleted = false;
                             var allFiles = SettingSearcher.OtherConfigFiles;
                             _cachedOtherFiles = new List<string>();
                             if (string.IsNullOrEmpty(_otherFileTypeFilter) || _otherFileTypeFilter == "all")
@@ -760,7 +776,9 @@ namespace ConfigurationManager
                                 File.Delete(_selectedOtherFile);
                                 _otherFileContents.Remove(_selectedOtherFile);
                                 Logger.LogInfo($"File deleted: {_selectedOtherFile}");
+                                BuildSettingList();
                                 _selectedOtherFile = null;
+                                fileDeleted = true;
                             }
                         }
                         GUILayout.EndHorizontal();
@@ -1070,7 +1088,8 @@ namespace ConfigurationManager
                         foreach (var setting in category.Settings)
                         {
                             DrawSingleSetting(setting);
-                            GUILayout.FlexibleSpace();
+                            //GUILayout.FlexibleSpace();
+                            GUILayout.Space(5);
                         }
                     }
                 }

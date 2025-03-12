@@ -35,6 +35,10 @@
       <Link>README.md</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="..\CHANGELOG.md">
+      <Link>CHANGELOG.md</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="..\ConfigurationManagerAttributes.cs">
       <Link>ConfigurationManagerAttributes.cs</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
