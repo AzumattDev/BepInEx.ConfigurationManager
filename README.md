@@ -89,24 +89,24 @@ to see their descriptions, if any.
 
 ## Color Drawer
 
-![Configuration manager Color Drawer](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/Improvements/ConfigurationManager_color.png)
+![Configuration manager Color Drawer](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/master/ConfigurationManager_color.png)
 
 ## Mod Selected View
 
-![Configuration manager Mod Selected View](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/Improvements/ConfigurationManager_modselected.png)
+![Configuration manager Mod Selected View](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/master/ConfigurationManager_modselected.png)
 
 ## No Selection View
 
-![Configuration manager No Selection View](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/Improvements/ConfigurationManager_noselection.png)
+![Configuration manager No Selection View](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/master/ConfigurationManager_noselection.png)
 
 ## Other Config Files
 
-![Configuration manager Other Config Files](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/Improvements/ConfigurationManager_otherconfigfiles.png)
+![Configuration manager Other Config Files](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/master/ConfigurationManager_otherconfigfiles.png)
 
 ## Synced/Read Only configuration (Red Arrows)
 
-![Configuration manager Synced Read Only](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/Improvements/ConfigurationManager_syncedreadonly.png)
+![Configuration manager Synced Read Only](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/master/ConfigurationManager_syncedreadonly.png)
 
 ## Pinning
 
-![Configuration manager Pinned](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/Improvements/ConfigurationManager_pinned.png)
+![Configuration manager Pinned](https://raw.githubusercontent.com/AzumattDev/BepInEx.ConfigurationManager/refs/heads/master/ConfigurationManager_pinned.png)
