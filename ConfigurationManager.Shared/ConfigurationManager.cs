@@ -193,7 +193,11 @@ namespace ConfigurationManager
             /* Custom configurations*/
             _windowSize = Config.Bind("General", "Window Size", new Vector2(0.55f, 0.95f), "Window size. The x is the width and the y is the height. This is a percent of screen to take up. 0.5 in the x is 50% of the screen width.");
             _textSize = Config.Bind("General", "Font Size", 14, "Font Size");
-            _textSize.SettingChanged += (_, _) => ImguiUtils.RecreateStyles();
+            _textSize.SettingChanged += (_, _) =>
+            {
+                UpdateFontSize(); // Add this call
+                ImguiUtils.RecreateStyles();
+            };
             _fontColor = Config.Bind("Colors", "Font Color", new Color(1f, 1f, 1f, 1), "Font color");
             _guidfontColor = Config.Bind("Colors", "GUID Font Color", Color.gray, "GUID Font color");
             _fontColor.SettingChanged += (_, _) => ImguiUtils.RecreateStyles();
@@ -306,6 +310,19 @@ namespace ConfigurationManager
                 SettingFieldDrawer.SettingDrawHandlers[settingType] = onGuiDrawer;
         }
 
+        private void UpdateFontSize()
+        {
+            float dpiScale = DPIScaling.GetDPIScale();
+            float baseFontSize = _textSize.Value;
+
+            // Scale font size based on DPI, with reasonable limits
+            ImguiUtils.fontSize = Mathf.Clamp(
+                Mathf.RoundToInt(baseFontSize * dpiScale),
+                8, // Minimum readable size
+                60 // Maximum size for 4K displays
+            );
+        }
+
         /// <summary>
         /// Rebuild the setting list. Use to update the config manager window if config settings were removed or added while it was open.
         /// </summary>
@@ -362,7 +379,12 @@ namespace ConfigurationManager
                         .GroupBy(x => x.Category)
                         .OrderBy(x => originalCategoryOrder.IndexOf(x.Key))
                         .ThenBy(x => x.Key)
-                        .Select(x => new PluginSettingsData.PluginSettingsGroupData { Name = x.Key, Settings = x.OrderByDescending(set => set.Order).ThenBy(set => set.DispName).ToList() });
+                        .Select(x => new PluginSettingsData.PluginSettingsGroupData
+                        {
+                            Name = x.Key,
+                            Settings = x.OrderByDescending(set => set.Order).ThenBy(set => set.DispName).ToList(),
+                            Collapsed = true // Default to collapsed for better organization
+                        });
 
                     var website = Utils.GetWebsite(pluginSettings.First().PluginInstance);
 
@@ -400,31 +422,32 @@ namespace ConfigurationManager
 
         private void CalculateWindowRect()
         {
-            float widthFactor = _windowSize.Value.x; // 55% of the screen width by default
-            float heightFactor = _windowSize.Value.y; // 95% of the screen height by default
+            float dpiScale = DPIScaling.GetDPIScale();
 
-            float guiScale = Screen.width / baseWidth;
+            // Use DPI-aware scaling instead of simple resolution scaling
+            float effectiveWidth = Screen.width / dpiScale;
+            float effectiveHeight = Screen.height / dpiScale;
 
-            // Ensure the window size is within reasonable limits
-            float screenWindowWidth = Mathf.Clamp(Screen.width * widthFactor, Screen.width * 0.25f, Screen.width * widthFactor);
-            float screenWindowHeight = Mathf.Clamp(Screen.height * heightFactor, Screen.width * 0.20f, Screen.height * heightFactor);
+            float widthFactor = _windowSize.Value.x;
+            float heightFactor = _windowSize.Value.y;
+
+            float windowWidth = effectiveWidth * widthFactor;
+            float windowHeight = effectiveHeight * heightFactor;
 
             // Center the window
-            float offsetX = Mathf.Round((Screen.width - screenWindowWidth) / 2f);
-            float offsetY = Mathf.Round((Screen.height - screenWindowHeight) / 2f);
-            float baseOffsetX = offsetX / guiScale;
-            float baseOffsetY = offsetY / guiScale;
-            float baseWindowWidth = screenWindowWidth / guiScale;
-            float baseWindowHeight = screenWindowHeight / guiScale;
+            float offsetX = (Screen.width - windowWidth * dpiScale) / 2f;
+            float offsetY = (Screen.height - windowHeight * dpiScale) / 2f;
 
-            SettingWindowRect = new Rect(baseOffsetX, baseOffsetY, baseWindowWidth, baseWindowHeight);
+            SettingWindowRect = new Rect(
+                offsetX / dpiScale,
+                offsetY / dpiScale,
+                windowWidth,
+                windowHeight
+            );
 
-            _screenRect = new Rect(0, 0, baseWidth, baseHeight);
-
-            LeftColumnWidth = Mathf.RoundToInt(SettingWindowRect.width / 3.5f);
-            RightColumnWidth = (int)SettingWindowRect.width - LeftColumnWidth;
-
-            _windowWasMoved = false;
+            // Scale column widths appropriately
+            LeftColumnWidth = Mathf.RoundToInt(windowWidth / 3.5f);
+            RightColumnWidth = (int)windowWidth - LeftColumnWidth;
         }
 
         private void OnGUI()
@@ -454,8 +477,7 @@ namespace ConfigurationManager
                 }
 
 
-                if (_textSize.Value > 9 && _textSize.Value < 100)
-                    ImguiUtils.fontSize = Mathf.Clamp(_textSize.Value, 10, 30);
+                UpdateFontSize();
 
                 ImguiUtils.CreateStyles();
 
@@ -1347,6 +1369,8 @@ namespace ConfigurationManager
         private void Start()
         {
             LoadPinnedPluginsFromConfig();
+
+            UpdateFontSize();
 
             // Use reflection to keep compatibility with unity 4.x since it doesn't have Cursor
             var tCursor = typeof(Cursor);

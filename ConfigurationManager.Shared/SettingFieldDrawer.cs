@@ -398,7 +398,7 @@ namespace ConfigurationManager
             }
             else
             {
-                var strVal = value.ToString().AppendZeroIfFloat(setting.SettingType);
+                var strVal = Convert.ToString(value, CultureInfo.InvariantCulture).AppendZeroIfFloat(setting.SettingType);
                 var strResult = GUILayout.TextField(strVal, GUILayout.Width(50));
                 if (strResult != strVal)
                 {
@@ -431,7 +431,7 @@ namespace ConfigurationManager
             {
                 // Fall back to slow/less reliable method
                 var rawValue = setting.Get();
-                var value = rawValue == null ? "NULL" : rawValue.ToString().AppendZeroIfFloat(setting.SettingType);
+                var value = rawValue == null ? "NULL" : Convert.ToString(rawValue, CultureInfo.InvariantCulture).AppendZeroIfFloat(setting.SettingType);
                 if (CanCovert(value, setting.SettingType))
                 {
                     var result = GUILayout.TextField(value, GUILayout.MaxWidth(rightColumnWidth));
@@ -673,7 +673,8 @@ namespace ConfigurationManager
 
                     // (2) Hue-Sat rect
                     EnsureHueSatTexture(); // create or reuse a 128×128 texture that goes from H=0..1, S=0..1 at full brightness
-                    Rect hsRect = GUILayoutUtility.GetRect(128, 128, GUILayout.ExpandWidth(false));
+                    int colorPickerSize = DPIScaling.ScaleValue(128);
+                    Rect hsRect = GUILayoutUtility.GetRect(colorPickerSize, colorPickerSize, GUILayout.ExpandWidth(false));
 
                     // Re-fills _hueSatTex using V=1.0 (maximum brightness).
                     if (Event.current.type == EventType.Repaint)
@@ -682,7 +683,7 @@ namespace ConfigurationManager
                     // Draw the hue-sat texture
                     GUI.DrawTexture(hsRect, _hueSatTex);
 
-                    // Draw a small "handle" where user’s S/H are
+                    // Draw a small "handle" where user's S/H are
                     // H is horizontal → x
                     // S is vertical   → y
                     // The texture “Hues horizontally” and “Sats vertically” in RecolorHueSatTexture

@@ -19,6 +19,7 @@ namespace ConfigurationManager
             "LateUpdate",
             "OnGUI",
         };
+
         public static HashSet<string> recognizedFiles = new HashSet<string>();
         public static List<string> OtherConfigFiles { get; private set; } = new List<string>();
 
@@ -31,9 +32,9 @@ namespace ConfigurationManager
             // Have to use FindObjectsOfType(Type) instead of FindObjectsOfType<T> because the latter is not available in some older unity versions.
             // Still look inside Chainloader.PluginInfos in case the BepInEx_Manager GameObject uses HideFlags.HideAndDontSave, which hides it from Object.Find methods.
             return Chainloader.PluginInfos.Values.Select(x => x.Instance)
-                              .Where(plugin => plugin != null)
-                              .Union(UnityEngine.Object.FindObjectsOfType(typeof(BaseUnityPlugin)).Cast<BaseUnityPlugin>())
-                              .ToArray();
+                .Where(plugin => plugin != null)
+                .Union(UnityEngine.Object.FindObjectsOfType(typeof(BaseUnityPlugin)).Cast<BaseUnityPlugin>())
+                .ToArray();
         }
 
         public static void CollectSettings(out IEnumerable<SettingEntryBase> results, out List<string> modsWithoutSettings, bool showDebug)
@@ -55,51 +56,59 @@ namespace ConfigurationManager
             OtherConfigFiles.Clear();
             foreach (var plugin in FindPlugins())
             {
-                var type = plugin.GetType();
-
-                var pluginInfo = plugin.Info.Metadata;
-                var pluginName = pluginInfo?.Name ?? plugin.GetType().FullName;
-
-                if (type.GetCustomAttributes(typeof(BrowsableAttribute), false).Cast<BrowsableAttribute>().Any(x => !x.Browsable))
+                try
                 {
-                    modsWithoutSettings.Add(pluginName);
-                    continue;
+                    var type = plugin.GetType();
+
+                    var pluginInfo = plugin.Info.Metadata;
+                    var pluginName = pluginInfo?.Name ?? plugin.GetType().FullName;
+
+                    if (type.GetCustomAttributes(typeof(BrowsableAttribute), false).Cast<BrowsableAttribute>().Any(x => !x.Browsable))
+                    {
+                        modsWithoutSettings.Add(pluginName);
+                        continue;
+                    }
+
+                    var detected = new List<SettingEntryBase>();
+
+                    detected.AddRange(GetPluginConfig(plugin).Cast<SettingEntryBase>());
+
+                    detected.RemoveAll(x => x.Browsable == false);
+
+                    if (detected.Count == 0)
+                        modsWithoutSettings.Add(pluginName);
+
+
+                    // Track recognized config files
+                    recognizedFiles.Add(plugin.Config.ConfigFilePath);
+
+                    // Allow to enable/disable plugin if it uses any update methods ------
+                    if (showDebug && type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Any(x => _updateMethodNames.Contains(x.Name)))
+                    {
+                        var enabledSetting = new PropertySettingEntry(plugin, type.GetProperty("enabled"), plugin);
+                        enabledSetting.DispName = "!Allow plugin to run on every frame";
+                        enabledSetting.Description = "Disabling this will disable some or all of the plugin's functionality.\nHooks and event-based functionality will not be disabled.\nThis setting will be lost after game restart.";
+                        enabledSetting.IsAdvanced = true;
+                        detected.Add(enabledSetting);
+                    }
+
+                    if (detected.Count > 0)
+                        results = results.Concat(detected);
                 }
-
-                var detected = new List<SettingEntryBase>();
-
-                detected.AddRange(GetPluginConfig(plugin).Cast<SettingEntryBase>());
-
-                detected.RemoveAll(x => x.Browsable == false);
-
-                if (detected.Count == 0)
-                    modsWithoutSettings.Add(pluginName);
-                
-                
-                // Track recognized config files
-                recognizedFiles.Add(plugin.Config.ConfigFilePath);
-
-                // Allow to enable/disable plugin if it uses any update methods ------
-                if (showDebug && type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Any(x => _updateMethodNames.Contains(x.Name)))
+                catch (Exception ex)
                 {
-                    var enabledSetting = new PropertySettingEntry(plugin, type.GetProperty("enabled"), plugin);
-                    enabledSetting.DispName = "!Allow plugin to run on every frame";
-                    enabledSetting.Description = "Disabling this will disable some or all of the plugin's functionality.\nHooks and event-based functionality will not be disabled.\nThis setting will be lost after game restart.";
-                    enabledSetting.IsAdvanced = true;
-                    detected.Add(enabledSetting);
+                    string pluginName = plugin?.Info?.Metadata?.Name ?? plugin?.GetType().FullName;
+                    ConfigurationManager.Logger.LogError($"Failed to collect settings of the following plugin: {pluginName}");
+                    ConfigurationManager.Logger.LogError(ex);
                 }
-
-                if (detected.Count > 0)
-                    results = results.Concat(detected);
             }
-            
+
             // Collect unrecognized config files
             var allFiles = Directory.GetFiles(Paths.ConfigPath, "*.*", SearchOption.AllDirectories)
                 .Where(file => file.EndsWith(".cfg") || file.EndsWith(".json") || file.EndsWith(".yaml") || file.EndsWith(".yml"))
                 .ToList();
 
-            
-            
+
             OtherConfigFiles = allFiles.Except(recognizedFiles).ToList();
         }
 
@@ -124,6 +133,5 @@ namespace ConfigurationManager
         {
             return plugin.Config.Select(kvp => new ConfigSettingEntry(kvp.Value, plugin));
         }
-
     }
 }

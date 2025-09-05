@@ -75,16 +75,27 @@ namespace ConfigurationManager.Utilities
                 GUI.enabled = false;
                 GUI.color = new Color(1, 1, 1, 2);
 
+                var guiScale = GUI.matrix.m00; // Get current scale from matrix
+
                 var location = GUIUtility.GUIToScreenPoint(new Vector2(Rect.x, Rect.y + listStyle.CalcHeight(listContent[0], 1.0f)));
-                var size = new Vector2(Rect.width, listStyle.CalcHeight(listContent[0], 1.0f) * listContent.Length);
+
+                // Apply inverse scaling to get correct screen coordinates
+                location.x /= guiScale;
+                location.y /= guiScale;
+
+                var itemHeight = listStyle.CalcHeight(listContent[0], 1.0f);
+                var size = new Vector2(Rect.width, itemHeight * listContent.Length);
 
                 var innerRect = new Rect(0, 0, size.x, size.y);
 
                 var outerRectScreen = new Rect(location.x, location.y, size.x, size.y);
-                if (outerRectScreen.yMax > _windowYmax)
+
+                // Scale the window max check
+                var scaledWindowYMax = _windowYmax / guiScale;
+                if (outerRectScreen.yMax > scaledWindowYMax)
                 {
-                    outerRectScreen.height = _windowYmax - outerRectScreen.y;
-                    outerRectScreen.width += 20;
+                    outerRectScreen.height = scaledWindowYMax - outerRectScreen.y;
+                    outerRectScreen.width += DPIScaling.ScaleValue(20); // Scale the width addition
                 }
 
                 if (currentMousePosition != Vector2.zero && outerRectScreen.Contains(GUIUtility.GUIToScreenPoint(currentMousePosition)))

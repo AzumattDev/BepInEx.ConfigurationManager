@@ -18,42 +18,42 @@ namespace ConfigurationManager.Utilities
         // Red close button (#BF3030)
         public static readonly Color RedCloseButton = new Color(0.749f, 0.188f, 0.188f, 1f);
 
-// Darker red cancel button (#541B1B)
+        // Darker red cancel button (#541B1B)
         public static readonly Color DarkRedCancelButton = new Color(0.329f, 0.106f, 0.106f, 1f);
 
-// Light green for setting text (#A7EDA7)
+        // Light green for setting text (#A7EDA7)
         public static readonly Color LightGreenSettingText = new Color(0.655f, 0.929f, 0.655f, 1f);
 
-// Dark green for save button (#1C401B)
+        // Dark green for save button (#1C401B)
         public static readonly Color DarkGreenSaveButton = new Color(0.110f, 0.251f, 0.106f, 1f);
 
-// Dark grey for background of left panel (#262626)
+        // Dark grey for background of left panel (#262626)
         public static readonly Color DarkGreyLeftPanel = new Color(0.153f, 0.153f, 0.153f, 1f);
 
-// Black background for entire panel (#0D0D0D)
+        // Black background for entire panel (#0D0D0D)
         public static readonly Color BlackPanelBackground = new Color(0.05f, 0.05f, 0.05f, 1f);
 
-// White background for entire panel (#0D0D0D)
+        // White background for entire panel (#0D0D0D)
         public static readonly Color WhitePanelBackground = new Color(1f, 1f, 1f, 1f);
 
-// Medium black background for category section (#1F1F1F)
+        // Medium black background for category section (#1F1F1F)
         public static readonly Color MediumBlackCategorySection = new Color(0.122f, 0.122f, 0.122f, 1f);
 
-// Medium black background for category header (#121212)
+        // Medium black background for category header (#121212)
         public static readonly Color MediumBlackCategoryHeader = new Color(0.071f, 0.071f, 0.071f, 1f);
 
-// Light grey for sliders (#4C4C4C)
+        // Light grey for sliders (#4C4C4C)
         public static readonly Color LightGreySliders = new Color(0.298f, 0.298f, 0.298f, 1f);
 
-// Medium grey for sliders (#404040)
+        // Medium grey for sliders (#404040)
         public static readonly Color MediumGreySliders = new Color(0.251f, 0.251f, 0.251f, 1f);
 
         public static readonly Color SettingDescription = new Color(0.4f, 0.4f, 0.4f, 1f);
 
-// Green for class/type name (#148B32)
+        // Green for class/type name (#148B32)
         public static readonly Color GreenClassTypeName = new Color(0.078f, 0.545f, 0.125f, 1f);
 
-// Yellow/tan for highlight (#989076)
+        // Yellow/tan for highlight (#989076)
         public static readonly Color YellowTanHighlight = new Color(0.6f, 0.55f, 0.45f, 0.5f);
 
         // Default value color (#FFF4AC)
@@ -149,7 +149,7 @@ namespace ConfigurationManager.Utilities
             //EndColor();
             return value;
         }
-        
+
         /// <summary>
         /// Creates a button with a specified color. Optionally a style can be specified.
         /// </summary>
@@ -220,5 +220,30 @@ namespace ConfigurationManager.Utilities
             EndColor();
             return value;
         }
+    }
+    
+    public static class DPIScaling
+    {
+        public static float GetDPIScale()
+        {
+            // Unity's Screen.dpi is often unreliable, so we calculate based on resolution and assumed physical size
+            float referenceDPI = 96f; // Standard Windows DPI
+            float currentDPI = Screen.dpi > 0 ? Screen.dpi : EstimateDPI();
+            return currentDPI / referenceDPI;
+        }
+
+        private static float EstimateDPI()
+        {
+            // Estimate DPI based on resolution (rough approximation)
+            float diagonal = Mathf.Sqrt(Screen.width * Screen.width + Screen.height * Screen.height);
+
+            // Assume common monitor sizes
+            if (diagonal > 3000) return 150f; // Likely 4K on ~27" monitor
+            if (diagonal > 2000) return 100f; // Likely 1440p
+            return 96f; // Standard 1080p
+        }
+
+        public static float ScaleValue(float value) => value * GetDPIScale();
+        public static int ScaleValue(int value) => Mathf.RoundToInt(value * GetDPIScale());
     }
 }
