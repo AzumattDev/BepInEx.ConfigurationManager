@@ -45,7 +45,10 @@ namespace ConfigurationManager
 
         private static readonly Color _advancedSettingColor = new Color(1f, 0.95f, 0.67f, 1f);
         private const int WindowId = -68;
-
+        
+        private const string NbspTooltipSentinel = "\u00A0"; // Non-breaking space character, used to indicate "no tooltip"
+        private static readonly GUIContent TooltipClearZoneContent = new GUIContent("", null, NbspTooltipSentinel);
+        
         private const string SearchBoxName = "searchBox";
         private bool _focusSearchBox;
         private string _searchString = string.Empty;
@@ -521,7 +524,7 @@ namespace ConfigurationManager
         private static void DrawTooltip(Rect area)
         {
             string tooltip = GUI.tooltip;
-            if (!string.IsNullOrEmpty(tooltip))
+            if (!string.IsNullOrEmpty(tooltip) &&  tooltip != NbspTooltipSentinel)
             {
                 var style = GUI.skin.box.CreateCopy();
                 style.wordWrap = true;
@@ -543,14 +546,16 @@ namespace ConfigurationManager
                     : mousePosition.y + 25;
 
                 Rect position = new Rect(x, y, width, height);
-                ImguiUtils.DrawControlBackground(position, Color.black);
-                style.Draw(position, content, -1);
+                GUI.Box(position, tooltip, style);
             }
         }
 
         private void SettingsWindow(int id)
         {
             GUI.DragWindow(new Rect(0.0f, 0.0f, SettingWindowRect.width, 20f));
+            // empty text, no image, NBSP as tooltip
+            GUI.Label(new Rect(0f, 0f, SettingWindowRect.width, SettingWindowRect.height), TooltipClearZoneContent);
+
             DrawWindowHeader();
 
             // Define columns
@@ -834,7 +839,7 @@ namespace ConfigurationManager
             GUILayout.EndHorizontal();
 
             if (!SettingFieldDrawer.DrawCurrentDropdown())
-                DrawTooltip(SettingWindowRect);
+                DrawTooltip(new Rect(0f, 0f, SettingWindowRect.width, SettingWindowRect.height));
         }
 
         private void DrawOtherFileEditor(string filePath)
