@@ -463,8 +463,7 @@ namespace ConfigurationManager
             else
             {
                 Matrix4x4 oldMatrix = GUI.matrix;
-                float scaleX = Screen.width / baseWidth;
-                float guiScale = scaleX;
+                float guiScale = DPIScaling.GetDPIScale();
 
                 // Apply the scaling transformation
                 GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(guiScale, guiScale, 1));
